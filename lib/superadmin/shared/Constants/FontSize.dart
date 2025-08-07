@@ -1,0 +1,40 @@
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+
+class AppFontSize {
+  static double font4 = 4.sp;
+  static double font6 = 6.sp;
+  static double font8 = 8.sp;
+  static double font10 = 10.sp;
+  static double font12 = 12.sp;
+  static double font14 = 14.sp;
+  static double font16 = 16.sp;
+  static double font18 = 18.sp;
+  static double font20 = 20.sp;
+  static double font22 = 22.sp;
+  static double font24 = 24.sp;
+  static double font28 = 28.sp;
+  static double font30 = 30.sp;
+  static double font32 = 32.sp;
+  static double font35 = 35.sp;
+  static double font40 = 40.sp;
+  static double font45 = 45.sp;
+  static double font50 = 50.sp;
+  static double font60 = 60.sp;
+  static double font70 = 70.sp;
+  static double font75 = 75.sp;
+  static double font80 = 80.sp;
+  static double font85 = 85.sp;
+  static double font90 = 90.sp;
+  static double font95 = 95.sp;
+  static double font100 = 100.sp;
+  static double font120 = 120.sp;
+  static double font130 = 130.sp;
+  static double font140 = 140.sp;
+  static double font150 = 150.sp;
+  static double font180 = 180.sp;
+  static double font200 = 200.sp;
+  static double font240 = 240.sp;
+  static double font260 = 260.sp;
+  static double font300 = 300.sp;
+  static double fontFull = 500.sp;
+}
