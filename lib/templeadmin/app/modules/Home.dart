@@ -1,6 +1,8 @@
 import 'package:admin/main.dart';
+import 'package:admin/templeadmin/app/modules/chats/views/adminChatView.dart';
 import 'package:admin/templeadmin/app/modules/services/views/service_view.dart';
 import 'package:admin/templeadmin/app/modules/volunteering/views/volunteering_views.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -10,11 +12,10 @@ import 'Login/views/login_view.dart';
 import 'donations/views/donations_view.dart';
 import 'events/views/events_view.dart';
 
-
 class HomeView extends StatefulWidget {
   final Map<String, dynamic> templeData;
-
   final String templeId;
+
   HomeView({super.key, required this.templeData, required this.templeId});
 
   @override
@@ -24,19 +25,62 @@ class HomeView extends StatefulWidget {
 class HomeViewState extends State<HomeView> {
   int _selectedScreenIndex = 0;
   bool _isDrawerOpen = false;
-
-  late List<Widget> _screens;
+  String? _adminId;
+  List<Widget> _screens = [];
 
   @override
   void initState() {
     super.initState();
+    _fetchAdminId();
+  }
+
+  Future<void> _fetchAdminId() async {
+    try {
+      // Get the admin ID based on templeId
+      final adminSnapshot = await FirebaseFirestore.instance
+          .collection('temple_admin')
+          .where('templeId', isEqualTo: widget.templeId)
+          .limit(1)
+          .get();
+
+      if (adminSnapshot.docs.isNotEmpty) {
+        setState(() {
+          _adminId = adminSnapshot.docs.first.get('temple_admin_uid');
+          _initializeScreens();
+        });
+      } else {
+        // Fallback if direct query doesn't work
+        final allAdmins = await FirebaseFirestore.instance
+            .collection('temple_admin')
+            .get();
+
+        final matchingAdmin = allAdmins.docs.firstWhere(
+              (doc) => doc['templeId'].toString().trim() == widget.templeId.trim(),
+          orElse: () => null as dynamic,
+        );
+
+        if (matchingAdmin != null) {
+          setState(() {
+            _adminId = matchingAdmin.get('temple_admin_uid');
+            _initializeScreens();
+          });
+        }
+      }
+    } catch (e) {
+      print('Error fetching admin ID: $e');
+    }
+  }
+
+  void _initializeScreens() {
     _screens = [
       TemplesView(templeData: widget.templeData),
-      ServiceView(templeId: widget.templeId,),
+      ServiceView(templeId: widget.templeId),
       EventsView(templeId: widget.templeId),
       DonationsView(templeId: widget.templeId),
-      VolunteeringViews(templeId: widget.templeId)
-
+      VolunteeringViews(templeId: widget.templeId),
+      _adminId != null
+          ? AdminChatListView(adminId: _adminId!)
+          : Center(child: Text("Admin ID not found")),
     ];
   }
 
@@ -136,10 +180,10 @@ class HomeViewState extends State<HomeView> {
                           // Drawer menu items
                           _buildDrawerItem('Temple Detail', 'assets/images/Temple.png', 0),
                           _buildDrawerItem('Services', 'assets/images/services.png', 1),
-                        _buildDrawerItem('Events', 'assets/images/events.png', 2),
+                          _buildDrawerItem('Events', 'assets/images/events.png', 2),
                           _buildDrawerItem('Donations', 'assets/images/donations.png', 3),
                           _buildDrawerItem('Volunteering Requests', 'assets/images/voluteering.png', 4),
-
+                          _buildDrawerItem('Chats', 'assets/images/chats.png', 5),
                           _buildLogoutItem(),
                         ],
                       ),
@@ -148,7 +192,9 @@ class HomeViewState extends State<HomeView> {
                   ),
                   Expanded(
                     child: Container(
-                      child: _screens[_selectedScreenIndex],
+                      child: _screens.isNotEmpty
+                          ? _screens[_selectedScreenIndex]
+                          : Center(child: CircularProgressIndicator()),
                     ),
                   ),
                 ],
@@ -194,29 +240,29 @@ class HomeViewState extends State<HomeView> {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: ListTile(
-        tileColor:
-        _selectedScreenIndex == 5 ? Appcolor.appColor : Appcolors.white,
-        leading: Image.asset(
-          "assets/images/logout.png",
-          height: 25,
-          width: 25,
-          color: _selectedScreenIndex == 5
-              ? Appcolors.white
-              : Appcolor.appColor,
-        ),
-        title: Text(
-          'Log out',
-          style: GoogleFonts.urbanist(
-            fontSize: 18,
-            fontWeight: FontWeight.w500,
-            color: _selectedScreenIndex == 5
+          tileColor:
+          _selectedScreenIndex == 6 ? Appcolor.appColor : Appcolors.white,
+          leading: Image.asset(
+            "assets/images/logout.png",
+            height: 25,
+            width: 25,
+            color: _selectedScreenIndex == 6
                 ? Appcolors.white
                 : Appcolor.appColor,
           ),
-        ),
-        onTap:(){
-          _showLogoutDialog();
-        }
+          title: Text(
+            'Log out',
+            style: GoogleFonts.urbanist(
+              fontSize: 18,
+              fontWeight: FontWeight.w500,
+              color: _selectedScreenIndex == 6
+                  ? Appcolors.white
+                  : Appcolor.appColor,
+            ),
+          ),
+          onTap: () {
+            _showLogoutDialog();
+          }
       ),
     );
   }
